@@ -123,7 +123,7 @@ plot_pvals <- function(labeled_results) {
 #' @examples log2fc_plot <- plot_log2fc(labeled_results, .10)
 plot_log2fc <- function(labeled_results, padj_threshold=0.1) {
   labeled_results %>%
-    filter(padj < padj_threshold) %>%
+    filter(!is.na(padj), padj < padj_threshold) %>%
     ggplot(aes(x=log2FoldChange)) + 
     geom_histogram(bins=100, color = "black", fill = "lightblue") +
     labs(title='Histogram of Log2FoldChanges for DE Genes (vP0 vs. vAd)', 
@@ -209,6 +209,8 @@ make_ranked_log2fc <- function(labeled_results, id2gene_path) {
     group_by(Symbol) %>%
     slice_max(order_by = abs(log2FoldChange), n = 1, with_ties = FALSE) %>%
     ungroup() %>%
+    distinct(Symbol, .keep_all = TRUE) %>%
+    mutate(log2FoldChange = log2FoldChange + runif(n(), -1e-8, 1e-8)) %>%
     arrange(desc(log2FoldChange)) %>%
     pull(log2FoldChange, name = Symbol)
 }
