@@ -96,11 +96,11 @@ labeled_res %>%
 
 ```{r code block for descriptive captions}
 
-caption_4 <- 'Descriptive caption for part 4'
-caption_5 <- 'Descriptive caption for part 5'
-caption_6 <- 'Descriptive caption for part 6'
-caption_7 <- 'Descriptive caption for part 7'
-caption_9 <- 'Descriptive caption for part 9'
+caption_4 <- 'Histogram of raw p-values from DE analysis comparing vP0 and vAd samples.'
+caption_5 <- 'Histogram of log2 fold changes for genes significantly differentially expressed (padj < 0.1) between vP0 and vAd samples.'
+caption_6 <- 'Scatter plot of log10-transformed normalized counts for the top 10 differentially expressed genes (ranked by lowest adjusted p-values) across all samples.'
+caption_7 <- 'Volcano plot of DE results comparing vP0 and vAd samples. Each point represents a gene colored by significance status, with log2 fold change on the x-axis and −log10(adjusted p-value) on the y-axis.'
+caption_9 <- 'Bar plot of the top positively and negatively enriched pathways ranked by normalized enrichment score (NES).'
 
 ```
 
@@ -208,7 +208,6 @@ Color the bars by whether they have a positive or negative NES.
 ```{r, fgsea results plot, echo=FALSE, fig.cap = caption_9}
 #Plot the top ten pathways with both positive and negative NES (20 total)
 #Color the pathways by the sign of their NES (positive or negative)
-source('main.R')
 fgsea_plot <- top_pathways(fgsea_results, 10)
 fgsea_plot
 ```

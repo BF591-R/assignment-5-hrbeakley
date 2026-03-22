@@ -147,7 +147,6 @@ plot_log2fc <- function(labeled_results, padj_threshold=0.1) {
 #' @examples norm_counts_plot <- scatter_norm_counts(labeled_results, dds, 10)
 scatter_norm_counts <- function(labeled_results, dds_obj, num_genes) {
   top_n <- labeled_results %>%
-    filter(!is.na(padj), padj < 0.1) %>%
     arrange(padj) %>%
     slice_head(n = num_genes) %>%
     pull(genes)
@@ -167,7 +166,7 @@ scatter_norm_counts <- function(labeled_results, dds_obj, num_genes) {
     geom_jitter(width = 0.15, height = 0) +
     labs(
       title = "Plot of Log10(normalized counts) for top DE genes",
-      x = "genes",
+      x = NULL,
       y = "log10(norm_counts)",
       color = "samplenames"
     ) +
@@ -189,7 +188,7 @@ scatter_norm_counts <- function(labeled_results, dds_obj, num_genes) {
 plot_volcano <- function(labeled_results) {
   ggplot(labeled_results, aes(x=log2FoldChange, y=-log10(padj), color=volc_plot_status)) +
     geom_point() +
-    labs(title='Volcano plot of DESeq2 differential expression results (vP0 vs. vAd') + 
+    labs(title='Volcano plot of DESeq2 differential expression results (vP0 vs. vAd)') + 
     theme_minimal()
 }
 
@@ -219,7 +218,6 @@ make_ranked_log2fc <- function(labeled_results, id2gene_path) {
     slice_max(order_by = abs(log2FoldChange), n = 1, with_ties = FALSE) %>%
     ungroup() %>%
     distinct(Symbol, .keep_all = TRUE) %>%
-    mutate(log2FoldChange = log2FoldChange + runif(n(), -1e-8, 1e-8)) %>%
     arrange(desc(log2FoldChange)) %>%
     pull(log2FoldChange, name = Symbol)
 }
@@ -262,7 +260,6 @@ top_pathways <- function(fgsea_results, num_paths = 10) {
       arrange(desc(NES)) %>%
       slice_head(n = num_paths) %>%
       mutate(direction = "Up"),
-    
     fgsea_results %>%
       filter(!is.na(NES), NES < 0) %>%
       arrange(NES) %>%
@@ -273,18 +270,21 @@ top_pathways <- function(fgsea_results, num_paths = 10) {
   
   ggplot(plot_df, aes(x = pathway, y = NES, fill = direction)) +
     geom_col() +
+    scale_fill_manual(values = c(Down = "blue", Up = "red")) +
     coord_flip() +
     scale_x_discrete(
-      labels = function(x) stringr::str_wrap(gsub("_", " ", x), width = 50)
+      labels = function(x) stringr::str_wrap(gsub("_", " ", x), width = 80)
     ) +
     labs(
-      title = "Top positive and negative NES pathways",
+      title = "fgsea results for MSigDB gene sets",
       x = NULL,
       y = "Normalized Enrichment Score (NES)"
     ) +
     theme_minimal() +
     theme(
-      axis.text.y = element_text(size = 7, lineheight = 0.9)
+      axis.text.y = element_text(size = 6, lineheight = 0.9),
+      plot.title = element_text(size=10),
+      legend.position = "none"
     )
     
 }
