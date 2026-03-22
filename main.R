@@ -145,23 +145,32 @@ plot_log2fc <- function(labeled_results, padj_threshold=0.1) {
 #' @export
 #'
 #' @examples norm_counts_plot <- scatter_norm_counts(labeled_results, dds, 10)
-scatter_norm_counts <- function(labeled_results, dds_obj, num_genes){
+scatter_norm_counts <- function(labeled_results, dds_obj, num_genes) {
   top_n <- labeled_results %>%
+    filter(!is.na(padj), padj < 0.1) %>%
     arrange(padj) %>%
     slice_head(n = num_genes) %>%
     pull(genes)
-
+  
   norm_cts <- as_tibble(
-    as.data.frame(counts(dds_obj, normalized=TRUE)), 
-    rownames = "genes") %>%
+    as.data.frame(counts(dds_obj, normalized = TRUE)),
+    rownames = "genes"
+  ) %>%
     filter(genes %in% top_n) %>%
-    pivot_longer(cols = -genes,
-                 names_to = "sample",
-                 values_to = "norm_count")
-  ggplot(norm_cts, aes(x=genes,y=log10(norm_count+1),color=sample)) +
+    pivot_longer(
+      cols = -genes,
+      names_to = "sample",
+      values_to = "norm_count"
+    )
+  
+  ggplot(norm_cts, aes(x = genes, y = log10(norm_count + 1), color = sample)) +
     geom_jitter(width = 0.15, height = 0) +
-    labs(title='Plot of Log10(normalized counts) for top ten DE genes',
-         x='genes',y='log10(norm_counts)',color='samplenames') +
+    labs(
+      title = "Plot of Log10(normalized counts) for top DE genes",
+      x = "genes",
+      y = "log10(norm_counts)",
+      color = "samplenames"
+    ) +
     theme_minimal() +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 }
@@ -246,38 +255,36 @@ run_fgsea <- function(gmt_file_path, rnk_list, min_size, max_size) {
 #' @export
 #'
 #' @examples fgsea_plot <- top_pathways(fgsea_results, 10)
-top_pathways <- function(fgsea_results, num_paths=10){
-  top_pos <- fgsea_results %>%
-    arrange(desc(NES)) %>%
-    slice_head(n=num_paths)
-  top_neg <- fgsea_results %>%
-    arrange(NES) %>%
-    slice_head(n=num_paths)
-  
-  plot_df <- bind_rows(top_pos, top_neg) %>%
-    distinct(pathway, .keep_all = TRUE) %>%
-    mutate(
-      direction = if_else(NES > 0, "Up", "Down"),
-      pathway = forcats::fct_reorder(pathway, NES)
-    )
+top_pathways <- function(fgsea_results, num_paths = 10) {
+  plot_df <- bind_rows(
+    fgsea_results %>%
+      filter(!is.na(NES), NES > 0) %>%
+      arrange(desc(NES)) %>%
+      slice_head(n = num_paths) %>%
+      mutate(direction = "Up"),
+    
+    fgsea_results %>%
+      filter(!is.na(NES), NES < 0) %>%
+      arrange(NES) %>%
+      slice_head(n = num_paths) %>%
+      mutate(direction = "Down")
+  ) %>%
+    mutate(pathway = forcats::fct_reorder(pathway, NES))
   
   ggplot(plot_df, aes(x = pathway, y = NES, fill = direction)) +
     geom_col() +
     coord_flip() +
     scale_x_discrete(
-      labels = function(x) stringr::str_wrap(gsub("_", " ", x), width = 80)
+      labels = function(x) stringr::str_wrap(gsub("_", " ", x), width = 50)
     ) +
-    scale_fill_manual(values = c("Up" = "red", "Down" = "blue")) +
     labs(
-      title = "fgsea results for Hallmark MSigDB gene sets",
+      title = "Top positive and negative NES pathways",
       x = NULL,
       y = "Normalized Enrichment Score (NES)"
     ) +
     theme_minimal() +
     theme(
-      legend.position = "none",
-      axis.text.y = element_text(size = 6, lineheight = 0.9),
-      plot.title = element_text(size = 9)
+      axis.text.y = element_text(size = 7, lineheight = 0.9)
     )
     
 }
