@@ -267,7 +267,6 @@ top_pathways <- function(fgsea_results, num_paths = 10) {
       mutate(direction = "Down")
   ) %>%
     mutate(pathway = forcats::fct_reorder(pathway, NES))
-  
   ggplot(plot_df, aes(x = pathway, y = NES, fill = direction)) +
     geom_col() +
     scale_fill_manual(values = c(Down = "blue", Up = "red")) +
