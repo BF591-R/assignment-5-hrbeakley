@@ -3,7 +3,6 @@ title: "Assignment 5 - DESeq2"
 output: html_document
 ---
 
-
 For more detailed instructions, please read the assignment page in the course
 textbook. Please note that for this assignment, many of the next steps depend on
 the previous working and for this reason, some of the tests are also dependent
